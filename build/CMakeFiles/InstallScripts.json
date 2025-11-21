@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/cmake_install.cmake",
+		"/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/sdk/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,5 @@
+/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/CMakeFiles/edit_cache.dir
+/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/CMakeFiles/rebuild_cache.dir
+/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/sdk/CMakeFiles/switch_sdk.dir
+/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/sdk/CMakeFiles/edit_cache.dir
+/home/antithetical/EPITA/PERSO/MiniSwitchOS/build/sdk/CMakeFiles/rebuild_cache.dir

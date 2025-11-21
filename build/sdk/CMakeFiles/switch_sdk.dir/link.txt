@@ -1,0 +1,2 @@
+/usr/bin/ar qc libswitch_sdk.a CMakeFiles/switch_sdk.dir/StateDB.cpp.o CMakeFiles/switch_sdk.dir/AgentBase.cpp.o
+/usr/bin/ranlib libswitch_sdk.a
