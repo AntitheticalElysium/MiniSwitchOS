@@ -11,4 +11,4 @@ find_package(Boost REQUIRED)
 
 # Subdirs
 add_subdirectory(sdk)
-# add_subdirectory(agents/logging_agent)
+add_subdirectory(agents/log_agent)

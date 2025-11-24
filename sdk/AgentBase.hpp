@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <string>
+#include <iostream>
 #include "StateDB.hpp"
 
 namespace sdk {
