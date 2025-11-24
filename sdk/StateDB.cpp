@@ -4,6 +4,8 @@ namespace sdk {
 
 StateDB::StateDB(const std::string& redis_url) {
     redis_ = std::make_shared<sw::redis::Redis>(redis_url); 
+    // Force enable keyspace notifications
+    redis_->command("config", "set", "notify-keyspace-events", "KEA");
 }
 
 void StateDB::set(const std::string& key, const json& value) {
