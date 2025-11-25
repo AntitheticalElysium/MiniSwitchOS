@@ -1,0 +1,2 @@
+redis==5.0.1
+prettytable==3.9.0

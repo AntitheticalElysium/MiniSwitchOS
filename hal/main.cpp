@@ -10,24 +10,24 @@ int main() {
     std::cout << "[HAL] Hardware Simulator Starting..." << std::endl;
     StateDB db; 
 
-    // Simulate Port 1
-    std::string port1_key = "sysdb/hal/port/1/oper_status";
-    bool link_status = false;
+    // Simulate Port 1 - hardware layer status
+    std::string port1_key = "sysdb/hardware/port/1/status";
+    bool link_up = false;
 
     while (true) {
         // Toggle state 
-        link_status = !link_status;
-        std::string status = link_status ? "up" : "down";
-        int speed = link_status ? 1000 : 0;
+        link_up = !link_up;
+        std::string status = link_up ? "up" : "down";
+        int speed = link_up ? 1000 : 0;
 
         // Create payload 
         json payload = {
-            {"link_status", status},
-            {"speed", speed},
-            {"timestamp", std::time(nullptr)}
+            {"linkStatus", status},      
+            {"speed", speed},           
+            {"lastChanged", std::time(nullptr)}
         };
 
-        // Write to hardware 
+        // Write to hardware status
         std::cout << "[HAL] Simulating Link " << status << " on Port 1" << std::endl;
         db.set(port1_key, payload);
 

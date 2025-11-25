@@ -5,9 +5,9 @@
 using namespace sdk;
 
 struct InterfaceState {
-    std::string admin_config = "down"; // Default to safe state
-    std::string hal_status   = "down";
-    std::string computed_oper = "down";
+    bool adminEnabled = false;       // Config intent (default: disabled/safe)
+    std::string linkStatus = "down"; // Physical link from HAL
+    std::string operStatus = "down"; // Computed operational state
 };
 
 class PortAgent : public AgentBase {
@@ -20,13 +20,15 @@ class PortAgent : public AgentBase {
         void initial_sync() override {
             std::cout << "[PortAgent] Loading Config and HAL state..." << std::endl;
 
-            auto config_keys = stateDB().scanKeys("sysdb/interface/*/admin_status/config");
+            // Scan for interface admin config
+            auto config_keys = stateDB().scanKeys("sysdb/interface/*/config");
             for (const auto& key: config_keys) {
                 auto val = stateDB().get(key);
                 if (val) update_cache_from_key(key, *val);
             }
 
-            auto hal_keys = stateDB().scanKeys("sysdb/hal/port/*/oper_status/status");
+            // Scan for hardware port status
+            auto hal_keys = stateDB().scanKeys("sysdb/hardware/port/*/status");
             for (const auto& key: hal_keys) {
                 auto val = stateDB().get(key);
                 if (val) update_cache_from_key(key, *val);
@@ -39,7 +41,13 @@ class PortAgent : public AgentBase {
         void handle_update(const std::string& key, const json& value) override {
             // Only update cache if relevant
             if (update_cache_from_key(key, value)) {
-                std::string id = extract_id(key);
+                // Extract correct ID based on key type
+                std::string id;
+                if (key.find("/hardware/port/") != std::string::npos) {
+                    id = extract_id_hal(key);
+                } else {
+                    id = extract_id(key);
+                }
                 reconcile(id);
             }
         }
@@ -49,20 +57,32 @@ class PortAgent : public AgentBase {
             auto& state = port_cache_[intf_id];
 
             std::string new_oper = "down";
-            if (state.admin_config == "up" && state.hal_status == "up") new_oper = "up";
+            if (state.adminEnabled && state.linkStatus == "up") {
+                new_oper = "up";
+            }
 
             // Only write if changed
-            if (state.computed_oper != new_oper) {
-                state.computed_oper = new_oper;
+            if (state.operStatus != new_oper) {
+                state.operStatus = new_oper;
             
-                std::string key = statusPath("interface/" + intf_id, "oper_status");
+                // Write to sysdb/interface/<id>/status
+                std::string key = "sysdb/interface/" + intf_id + "/status";
+                
+                // Determine reason for down state
+                std::string reason = "";
+                if (new_oper == "down") {
+                    reason = !state.adminEnabled ? "adminDisabled" : "linkDown";
+                }
+
                 json payload = {
-                    {"value", new_oper},
-                    {"reason", (new_oper == "down" && state.admin_config == "down") ? "admin_down" : "link_failure"},
-                    {"ts", std::time(nullptr)}
+                    {"operStatus", new_oper},
+                    {"linkStatus", state.linkStatus},
+                    {"adminEnabled", state.adminEnabled},
+                    {"reason", reason},
+                    {"lastChanged", std::time(nullptr)}
                 };
 
-                std::cout << "[PortAgent] Reconciled " << intf_id << ": " << new_oper << std::endl;
+                std::cout << "[PortAgent] Reconciled " << intf_id << ": operStatus=" << new_oper << std::endl;
                 stateDB().set(key, payload);
             }
 
@@ -75,18 +95,19 @@ class PortAgent : public AgentBase {
         }
 
         bool update_cache_from_key(const std::string& key, const json& value) {
-            // sysdb/interface/<ID>/admin_status/config
-            if (key.find("/admin_status/config") != std::string::npos) {
+            // sysdb/interface/<ID>/config - admin configuration
+            if (key.find("/interface/") != std::string::npos &&
+                key.find("/config") != std::string::npos) {
                 std::string id = extract_id(key);
-                port_cache_[id].admin_config = value.value("admin_status", "down");
+                port_cache_[id].adminEnabled = value.value("adminEnabled", false);
                 return true;
             }
 
-            // sysdb/hal/port/<ID>/oper_status/status
-            if (key.find("/hal/port/") != std::string::npos &&
-                key.find("/oper_status/status") != std::string::npos) {
+            // sysdb/hardware/port/<ID>/status - HAL link state
+            if (key.find("/hardware/port/") != std::string::npos &&
+                key.find("/status") != std::string::npos) {
                 std::string id = extract_id_hal(key);
-                port_cache_[id].hal_status = value.value("link_status", "down");
+                port_cache_[id].linkStatus = value.value("linkStatus", "down");
                 return true;
             }
 
@@ -94,14 +115,14 @@ class PortAgent : public AgentBase {
         }
 
         std::string extract_id(const std::string& key) {
-            // extract "eth1" from sysdb/interface/eth1/...
+            // extract "eth1" from sysdb/interface/eth1/config
             size_t start = key.find("/interface/") + 11;
             size_t end = key.find("/", start);
             return key.substr(start, end - start);
         }
 
         std::string extract_id_hal(const std::string& key) {
-            // extract "1" from sysdb/hal/port/1/...
+            // extract "1" from sysdb/hardware/port/1/status
             size_t start = key.find("/port/") + 6;
             size_t end = key.find("/", start);
             return key.substr(start, end - start);
