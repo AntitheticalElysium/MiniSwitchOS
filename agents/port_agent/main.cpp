@@ -122,7 +122,7 @@ class PortAgent : public AgentBase {
         }
 
         std::string extract_id_hal(const std::string& key) {
-            // extract "1" from sysdb/hardware/port/1/status
+            // extract "eth1" from sysdb/hardware/port/eth1/status
             size_t start = key.find("/port/") + 6;
             size_t end = key.find("/", start);
             return key.substr(start, end - start);

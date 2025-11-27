@@ -10,8 +10,8 @@ int main() {
     std::cout << "[HAL] Hardware Simulator Starting..." << std::endl;
     StateDB db; 
 
-    // Simulate Port 1 - hardware layer status
-    std::string port1_key = "sysdb/hardware/port/1/status";
+    // Simulate eth1 - hardware layer status
+    std::string port1_key = "sysdb/hardware/port/eth1/status";
     bool link_up = false;
 
     while (true) {
@@ -28,7 +28,7 @@ int main() {
         };
 
         // Write to hardware status
-        std::cout << "[HAL] Simulating Link " << status << " on Port 1" << std::endl;
+        std::cout << "[HAL] Simulating Link " << status << " on eth1" << std::endl;
         db.set(port1_key, payload);
 
         std::this_thread::sleep_for(std::chrono::seconds(5));

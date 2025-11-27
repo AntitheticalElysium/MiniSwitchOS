@@ -12,5 +12,6 @@ find_package(Boost REQUIRED)
 # Subdirs
 add_subdirectory(sdk)
 add_subdirectory(hal)
+add_subdirectory(procmgr)
 add_subdirectory(agents/log_agent)
 add_subdirectory(agents/port_agent)
